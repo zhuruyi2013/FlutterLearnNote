@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_app/DioHelper.dart';
-import 'dart:convert';
-import 'Weather.dart';
+import 'AlbumCover.dart';
+import 'MusicManager.dart';
+import 'model/Music.dart';
 
 void main() => runApp(new MyApp());
 
+// ignore: must_be_immutable
 class MyApp extends StatelessWidget {
   String weatherUrl = "https://www.tianqiapi.com/api/";
 
@@ -13,77 +13,56 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    getHttp();
+//    getHttp();
 
     return new MaterialApp(
       title: 'Flutter Demo',
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("Animation Album"),
+        ),
+        body: Page(),
+      ),
     );
   }
+}
 
-  void getHttp() async {
-    try {
-//    Response response = await Dio().get(weatherUrl);
-      Response response = await DioHelper().requestGet(weatherUrl,
-          {"version": "v1", "city":"青岛"});
+class Page extends StatefulWidget {
 
-      Weather w = Weather.fromJson(json.decode(response.toString()));
-      print(w.city);
-    } catch (e) {
-      print(e);
-    }
+  @override
+  State<StatefulWidget> createState() {
+    return _PageState();
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+class _PageState extends State<Page> {
+  Music music;
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
-}
+  void initState() {
+    super.initState();
+    music = musicManager.getCurrent();
+    musicManager.addListener(_onPlayerStateChanged);
+  }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _onPlayerStateChanged() {
+    if (music != musicManager.getCurrent()) {
+      music = musicManager.getCurrent();
+      if (music == null) {
+        Navigator.pop(context);
+      } else {
+        setState(() {});
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(widget.title),
-      ),
-      body: new Center(
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have clicked the button this many times:',
-            ),
-            new Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return AlbumCover(music: music);
   }
 }
-
 
 
